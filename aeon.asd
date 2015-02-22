@@ -3,7 +3,7 @@
   :author "Florian Margaine <florian@margaine.com>"
   :license "MIT License"
   :serial t
-  :depends-on ("usocket" "log4cl" "cl-ppcre")
+  :depends-on (:usocket :log4cl :cl-ppcre)
   :components ((:module "src"
                         :components
                         ((:file "package")
@@ -11,4 +11,5 @@
                          (:file "string")
                          (:file "scanner")
                          (:file "http")
-                         (:file "aeon")))))
+                         (:file "aeon"))))
+  :in-order-to ((asdf:test-op (asdf:test-op #:aeon-test))))
