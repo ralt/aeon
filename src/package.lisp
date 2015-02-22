@@ -8,6 +8,8 @@
    :http-request-host
    :http-request-port
    :http-request-set-request-line
+   :http-request-set-header
+   :http-request-parse-lines
 
    ; response symbols
    :version
