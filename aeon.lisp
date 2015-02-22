@@ -12,24 +12,40 @@
                          :multi-threading t
                          :in-new-thread t))
 
-(defun tcp-handler (stream &key (request "") host)
+(defun tcp-handler (stream)
   "The main TCP handler."
   (declare (type stream stream))
-  (let* ((line (read-line stream nil nil))
-         (request-buffer (concatenate 'string request line))
-         (host-scanner (cl-ppcre:create-scanner "^Host\\s*:\\s*(.*)"
-                                                :case-insensitive-mode t)))
-    ;; Request is finished
-    (when (string= line newline)
-      (log4cl:log-info request-buffer)
-      (log4cl:log-info host)
-      (return-from tcp-handler))
+  (let ((req))
+    (loop for line = (read-line stream nil 'eof)
+       until (or (eq line 'eof) (string= line newline))
+       do (http-request-parse-line req line))
+    (proxy req stream)))
 
-    ;; Get the host from the Host header
-    (multiple-value-bind (present-p matches)
-        (cl-ppcre:scan-to-strings host-scanner line)
-      (when present-p
-        (setf host (cl-ppcre:split ":" (elt matches 0)))))
+(defun proxy (req stream)
+  (handler-case
+      (let* ((socket (usocket:socket-connect (http-request-host req)
+                                             (http-request-port req)
+                                             :element-type 'unsigned-byte))
+             (socket-stream (usocket:socket-stream socket)))
+        (write-sequence (http-request-dump req) socket-stream)
+        (force-output socket-stream)
+        (write-sequence (http-response-dump
+                         (http-response-parse
+                          (loop for byte = (read-byte socket-stream nil 'eof)
+                             until (eq byte 'eof)
+                             collect byte)))
+                        stream)
+        (force-output stream)
+        (usocket:socket-close socket))
+    (usocket:ns-host-not-found-error () (write-sequence (http-response-dump (error-502)) stream))
+    (usocket:timeout-error () (write-sequence (http-response-dump (error-504)) stream))
+    (error () (write-sequence (http-response-dump (error-500)) stream))))
 
-    ;; Recursion!
-    (tcp-handler stream :request request-buffer :host host)))
+(defun error-500 ()
+  (http-response-set-status nil 500 "Internal Server Error"))
+
+(defun error-502 ()
+  (http-response-set-status nil 502 "Bad Gateway"))
+
+(defun error-504 ()
+  (http-response-set-status nil 504 "Gateway Timeout"))
