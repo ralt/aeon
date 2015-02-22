@@ -1,48 +1,6 @@
 (in-package #:aeon)
 
 
-(defvar *request-line-scanner*
-  (cl-ppcre:create-scanner
-   '(:sequence
-     :start-anchor
-     (:register ;; methods
-      (:alternation
-       "GET" "HEAD" "POST" "PUT" "DELETE" "TRACE" "OPTIONS" "CONNECT" "PATCH"))
-     #\Space
-     (:register ;; request URI
-      (:greedy-repetition 1 nil
-       (:char-class (:range #\a #\z)
-                    (:range #\A #\Z)
-                    (:range #\0 #\9)
-                    #\%
-                    #\_
-                    #\/
-                    #\-)))
-     #\Space
-     "HTTP" #\/ "1.1"
-     #\Return
-     :end-anchor)
-   :case-insensitive-mode t))
-
-(defvar *request-header-scanner*
-  (cl-ppcre:create-scanner
-   '(:sequence
-     :start-anchor
-     (:greedy-repetition 0 nil :whitespace-char-class)
-     (:register ;; header name
-      (:greedy-repetition 1 nil
-       (:char-class (:range #\a #\z)
-                    (:range #\A #\Z)
-                    (:range #\0 #\9)
-                    #\-)))
-     (:greedy-repetition 0 nil :whitespace-char-class)
-     #\:
-     (:greedy-repetition 0 nil :whitespace-char-class)
-     (:register ;; header value
-      (:greedy-repetition 1 nil :everything))
-     #\Return
-     :end-anchor)))
-
 (defun http-request-parse-lines (lines &optional req)
   (unless lines
     (return-from http-request-parse-lines req))
@@ -68,7 +26,7 @@
     (return-from http-request-set-header
       (http-request-set-header (append req (list (list* 'headers nil))) header value)))
   (list-merge req 'headers (append (list-get-item 'headers req)
-                                   (list (list* header value)))))
+                                   (list (list* (intern (string-upcase header)) value)))))
 
 (defun http-request-set-request-line (req method request-uri)
   (append req
@@ -77,10 +35,16 @@
           (list (list* 'version "HTTP/1.1"))))
 
 (defun http-request-host (req)
-  (declare (ignore req)))
+  (first (cl-ppcre:split ":" (http-request-host-header req))))
+
+(defun http-request-host-header (req)
+  (rest (list-get-item 'host (rest (list-get-item 'headers req)))))
 
 (defun http-request-port (req)
-  (declare (ignore req)))
+  (let ((host-values (cl-ppcre:split ":" (http-request-host-header req))))
+    (if (= (length host-values) 2)
+        (parse-integer (second host-values))
+        80)))
 
 (defun http-request-dump (req)
   (declare (ignore req)))

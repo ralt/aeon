@@ -7,5 +7,6 @@
   :components ((:file "package")
                (:file "list")
                (:file "string")
+               (:file "scanner")
                (:file "http")
                (:file "aeon")))
