@@ -8,9 +8,10 @@
     (multiple-value-bind (present-p matches)
         (cl-ppcre:scan-to-strings *request-line-scanner* line)
       (when present-p
-        (http-request-parse-lines
-         (rest lines)
-         (http-request-set-request-line req (elt matches 0) (elt matches 1)))))
+        (return-from http-request-parse-lines
+          (http-request-parse-lines
+           (rest lines)
+           (http-request-set-request-line req (elt matches 0) (elt matches 1))))))
     (multiple-value-bind (present-p matches)
         (cl-ppcre:scan-to-strings *request-header-scanner* line)
       (when present-p

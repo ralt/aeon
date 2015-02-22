@@ -27,8 +27,7 @@
       (aeon:headers . ((aeon:authorization . "bar") (aeon:cookie . "foo=bar")))))
 
 (is (aeon:http-request-parse-lines '("GET http://foo.bar/ HTTP/1.1" "Host: foo.bar"))
-    '((aeon:method . "GET") (aeon:version . "HTTP/1.1")
-      (aeon:request-uri . "http://foo.bar/")
-      (aeon:headers . ((aeon:host . "foo.bar")))))
+    '((aeon:method . "GET") (aeon:request-uri . "http://foo.bar/")
+      (aeon:version . "HTTP/1.1") (aeon:headers . ((aeon:host . "foo.bar")))))
 
 (finalize)
