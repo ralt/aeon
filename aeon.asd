@@ -4,9 +4,11 @@
   :license "MIT License"
   :serial t
   :depends-on ("usocket" "log4cl" "cl-ppcre")
-  :components ((:file "package")
-               (:file "list")
-               (:file "string")
-               (:file "scanner")
-               (:file "http")
-               (:file "aeon")))
+  :components ((:module "src"
+                        :components
+                        ((:file "package")
+                         (:file "list")
+                         (:file "string")
+                         (:file "scanner")
+                         (:file "http")
+                         (:file "aeon")))))

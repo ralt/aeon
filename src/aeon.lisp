@@ -1,8 +1,6 @@
 (in-package #:aeon)
 
 
-(defconstant newline "")
-
 (defun start (address port)
   "Starts the socket server."
   (usocket:socket-server address
@@ -17,7 +15,7 @@
   (declare (type stream stream))
   (proxy (http-request-parse-lines
           (loop for line = (read-line stream nil 'eof)
-             until (or (eq line 'eof) (string= line newline))
+             until (or (eq line 'eof) (string= line ""))
              collect line))
          stream))
 

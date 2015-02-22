@@ -24,9 +24,13 @@
       (http-request-set-header (list (list* 'headers nil)) header value)))
   (unless (list-get-item 'headers req)
     (return-from http-request-set-header
-      (http-request-set-header (append req (list (list* 'headers nil))) header value)))
+      (http-request-set-header (append req
+                                       (list (list* 'headers nil)))
+                               header
+                               value)))
   (list-merge req 'headers (append (list-get-item 'headers req)
-                                   (list (list* (intern (string-upcase header)) value)))))
+                                   (list (list* (intern (string-upcase header))
+                                                value)))))
 
 (defun http-request-set-request-line (req method request-uri)
   (append req
