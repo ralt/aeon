@@ -26,21 +26,25 @@
              (socket-stream (usocket:socket-stream socket)))
         (write-sequence (http-request-dump req) socket-stream)
         (force-output socket-stream)
-        (write-sequence (http-response-dump
-                         (http-response-parse-lines
-                          (loop for line = (read-line socket-stream nil 'eof)
-                             until (eq line 'eof)
-                             collect line)))
-                        stream)
+        (write-sequence
+         (http-response-dump
+          (http-response-parse-lines
+           (loop for line = (read-line socket-stream nil 'eof)
+              until (eq line 'eof)
+              collect line)))
+          stream)
         (force-output stream)
         (usocket:socket-close socket))
-    (usocket:ns-host-not-found-error () (write-sequence
-                                         (http-response-dump (error-502))
-                                         stream))
-    (usocket:timeout-error () (write-sequence
-                               (http-response-dump (error-504))
-                               stream))
-    (error () (write-sequence
+    (usocket:ns-host-not-found-error () (progn
+                                          (write-sequence
+                                           (http-response-dump (error-502))
+                                           stream)
+                                          (force-output stream)))
+    (usocket:timeout-error () (progn
+                                (write-sequence
+                                 (http-response-dump (error-504))
+                                 stream)
+                                (force-output stream)))
                (http-response-dump (error-500))
                stream))))
 

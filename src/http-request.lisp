@@ -72,16 +72,3 @@
                                   (http-request-host req))
                           (rest (list-get-item 'request-uri req))
                           ""))
-
-(defun http-response-parse-lines (lines)
-  (declare (ignore lines)))
-
-(defun http-response-dump (res)
-  (declare (ignore res)))
-
-(defun http-response-set-status (res status message)
-  (append res
-          (unless res
-            (list (list* 'version "HTTP/1.1")))
-          (list (list* 'status status))
-          (list (list* 'message message))))
