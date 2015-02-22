@@ -1,6 +1,8 @@
 (in-package #:aeon)
 
 
+(defvar *newline* '(#\Return #\Newline))
+
 (defun http-request-parse-lines (lines &optional req)
   (unless lines
     (return-from http-request-parse-lines req))
@@ -30,7 +32,7 @@
                                header
                                value)))
   (list-merge req 'headers (append (list-get-item 'headers req)
-                                   (list (list* (intern (string-upcase header))
+                                   (list (list* (intern (string-upcase header) :aeon)
                                                 value)))))
 
 (defun http-request-set-request-line (req method request-uri)
@@ -52,7 +54,24 @@
         80)))
 
 (defun http-request-dump (req)
-  (declare (ignore req)))
+  (format nil "~{~A~}~A~A"
+          (append
+           (list (concat (http-request-request-line req) *newline*))
+           (loop for header in (rest (list-get-item 'headers req))
+              collect (concat
+                       (symbol-name (first header)) ": " (rest header) *newline*)))
+          #\Return #\Newline))
+
+(defun http-request-request-line (req)
+  (concat (rest (list-get-item 'method req)) " "
+          (http-request-request-uri req) " "
+          (rest (list-get-item 'version req))))
+
+(defun http-request-request-uri (req)
+  (cl-ppcre:regex-replace (concat "https?:\\/\\/"
+                                  (http-request-host req))
+                          (rest (list-get-item 'request-uri req))
+                          ""))
 
 (defun http-response-parse-lines (lines)
   (declare (ignore lines)))

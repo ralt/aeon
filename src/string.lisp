@@ -1,5 +1,5 @@
 (in-package #:aeon)
 
 
-(defun cat (&rest args)
+(defun concat (&rest args)
   (apply #'concatenate 'string args))

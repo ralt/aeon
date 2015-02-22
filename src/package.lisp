@@ -10,6 +10,9 @@
    :http-request-set-request-line
    :http-request-set-header
    :http-request-parse-lines
+   :http-request-request-line
+   :http-request-request-uri
+   :http-request-dump
 
    ; response symbols
    :version
