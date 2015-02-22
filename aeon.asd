@@ -3,6 +3,9 @@
   :author "Florian Margaine <florian@margaine.com>"
   :license "MIT License"
   :serial t
-  :depends-on ("usocket" "log4cl" "cl-ppcre" "trivial-utf-8")
+  :depends-on ("usocket" "log4cl" "cl-ppcre")
   :components ((:file "package")
+               (:file "list")
+               (:file "string")
+               (:file "http")
                (:file "aeon")))
