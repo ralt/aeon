@@ -13,40 +13,29 @@
 (defun tcp-handler (stream)
   "The main TCP handler."
   (declare (type stream stream))
-  (proxy (http-request-parse-lines
-          (loop for line = (read-line stream nil 'eof)
-             until (or (eq line 'eof) (string= line ""))
-             collect line))
-         stream))
+  (proxy
+   (http-request-parse-lines
+    (loop for line = (read-line stream nil 'eof)
+       until (or (eq line 'eof) (string= line ""))
+       collect line))
+   stream))
 
 (defun proxy (req stream)
   (handler-case
-      (let* ((socket (usocket:socket-connect (http-request-host req)
-                                             (http-request-port req)))
-             (socket-stream (usocket:socket-stream socket)))
-        (write-sequence (http-request-dump req) socket-stream)
-        (force-output socket-stream)
-        (write-sequence
-         (http-response-dump
-          (http-response-parse-lines
-           (loop for line = (read-line socket-stream nil 'eof)
-              until (eq line 'eof)
-              collect line)))
-          stream)
-        (force-output stream)
-        (usocket:socket-close socket))
-    (usocket:ns-host-not-found-error () (progn
-                                          (write-sequence
-                                           (http-response-dump (error-502))
-                                           stream)
-                                          (force-output stream)))
-    (usocket:timeout-error () (progn
-                                (write-sequence
-                                 (http-response-dump (error-504))
-                                 stream)
-                                (force-output stream)))
-               (http-response-dump (error-500))
-               stream))))
+      (multiple-value-bind (body status headers uri req-stream must-close reason-phrase)
+          (drakma:http-request (concat "http://" (http-request-host req) ":"
+                                       (write-to-string (http-request-port req))
+                                       (http-request-request-uri req)))
+        (declare (ignore uri req-stream must-close))
+        (write-sequence (http-response-dump status reason-phrase headers
+                                            body)
+                        stream)
+        (force-output stream))
+    (error () (progn
+                (write-sequence (http-response-dump 500 "Internal Server Error"
+                                                    '((X-From . "aeon"))
+                                                    "Not yet supported.")
+                                stream)))))
 
 (defun error-500 ()
   (http-response-set-status nil 500 "Internal Server Error"))
