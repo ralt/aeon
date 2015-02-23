@@ -36,12 +36,3 @@
                                                     '((X-From . "aeon"))
                                                     "Not yet supported.")
                                 stream)))))
-
-(defun error-500 ()
-  (http-response-set-status nil 500 "Internal Server Error"))
-
-(defun error-502 ()
-  (http-response-set-status nil 502 "Bad Gateway"))
-
-(defun error-504 ()
-  (http-response-set-status nil 504 "Gateway Timeout"))
