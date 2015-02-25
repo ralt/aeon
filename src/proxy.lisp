@@ -13,12 +13,12 @@
 (defun tcp-handler (stream)
   "The main TCP handler."
   (declare (type stream stream))
-  (proxy
-   (http-request-parse-lines
-    (loop for line = (read-line stream nil 'eof)
-       until (or (eq line 'eof) (string= line ""))
-       collect line))
-   stream))
+  (signal! *app*
+           (got-request string)
+           (format nil "~{~A~}"
+                   (loop for line = (read-line stream nil 'eof)
+                      until (or (eq line 'eof) (string= line ""))
+                      collect (concat line '(#\Newline))))))
 
 (defun proxy (req stream)
   (handler-case
