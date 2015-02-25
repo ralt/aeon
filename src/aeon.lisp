@@ -14,7 +14,8 @@
 (define-subwidget (aeon headers-list) (q+:make-qtablewidget aeon)
   (q+:hide (q+:horizontal-header headers-list))
   (q+:hide (q+:vertical-header headers-list))
-  (setf (q+:stretch-last-section (q+:horizontal-header headers-list)) t))
+  (setf (q+:stretch-last-section (q+:horizontal-header headers-list)) t)
+  (setf (q+:resize-mode (q+:horizontal-header headers-list)) (q+:qheaderview.resize-to-contents)))
 
 (define-subwidget (aeon layout) (q+:make-qvboxlayout aeon)
   (setf (q+:window-title aeon) "Aeon")
