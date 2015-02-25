@@ -3,7 +3,7 @@
   :author "Florian Margaine <florian@margaine.com>"
   :license "MIT License"
   :serial t
-  :depends-on (:usocket :cl-ppcre :drakma)
+  :depends-on (:usocket :cl-ppcre :drakma :qtools :qtcore :qtgui)
   :components ((:module "src"
                         :components
                         ((:file "package")
@@ -12,5 +12,6 @@
                          (:file "scanner")
                          (:file "http-request")
                          (:file "http-response")
+                         (:file "proxy")
                          (:file "aeon"))))
   :in-order-to ((asdf:test-op (asdf:test-op #:aeon-test))))

@@ -1,5 +1,5 @@
 (defpackage #:aeon
-  (:use #:cl)
+  (:use #:cl+qt)
   (:export
    ; response functions
    :http-response-set-status
