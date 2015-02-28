@@ -1,6 +1,9 @@
 (in-package #:aeon)
 
 
+(defvar *requests* (make-hash-table :test 'eq))
+(defvar *requests-counter* 0)
+
 (defun start (address port)
   "Starts the socket server."
   (usocket:socket-server address
@@ -13,12 +16,16 @@
 (defun tcp-handler (stream)
   "The main TCP handler."
   (declare (type stream stream))
-  (signal! *app*
-           (got-request string)
-           (format nil "~{~A~}"
-                   (loop for line = (read-line stream nil 'eof)
-                      until (or (eq line 'eof) (string= line ""))
-                      collect (concat line '(#\Newline))))))
+  (let ((str (format nil "~{~A~}"
+                     (loop for line = (read-line stream nil 'eof)
+                        until (or (eq line 'eof) (string= line ""))
+                        collect (concat line '(#\Newline)))))
+        (next-id (incf *requests-counter*)))
+    (setf (gethash next-id *requests*)
+          (list :request str :stream stream))
+    (signal! *app* (got-request int) next-id)
+    (proxy (http-request-parse-lines (cl-ppcre:split (concat '(#\Newline)) str))
+           stream)))
 
 (defun proxy (req stream)
   (handler-case

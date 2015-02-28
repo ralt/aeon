@@ -72,3 +72,6 @@
                                   (http-request-host req))
                           (rest (list-get-item 'request-uri req))
                           ""))
+
+(defun http-request-method (req)
+  (rest (list-get-item 'method req)))
