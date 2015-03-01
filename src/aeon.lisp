@@ -59,16 +59,29 @@
 
 (define-slot (aeon open-request) ((row int) (column int))
   (declare (connected headers-list (cell-clicked int int)))
-  (declare (ignore column)) ; only interested in whole row anyway
-  (let ((tabwidget (make-tabwidget
-                    aeon
-                    (request-from-string (getf (gethash row *requests*) :request)))))
-    (q+:add-widget layout tabwidget)))
+  (declare (ignore column)) ; only interested in the row
+  (q+:add-widget layout (make-tabwidget aeon
+                                        (request-from-string
+                                         (getf (gethash row *requests*) :request)))))
 
 (defun make-tabwidget (aeon req)
-  (let ((tabs-widget (q+:make-qtabwidget aeon))
-        (table (q+:make-qtablewidget
-                (length (rest (list-get-item 'headers req))) 3 aeon)))
+  (let* ((tabs-widget (q+:make-qtabwidget aeon))
+         (headers (rest (list-get-item 'headers req)))
+         (table (q+:make-qtablewidget (length headers) 2 aeon)))
+    (q+:hide (q+:vertical-header table))
+    (q+:hide (q+:horizontal-header table))
+    (setf (q+:stretch-last-section (q+:horizontal-header table)) t)
+    (setf (q+:resize-mode (q+:horizontal-header table))
+          (q+:qheaderview.resize-to-contents))
+    (loop for i from 0 upto (- (length headers) 1)
+       do (progn
+            (setf (q+:item table i 0)
+                  (q+:make-qtablewidgetitem (string-capitalize
+                                             (symbol-name (first (elt headers i))))
+                                            (q+:qtablewidgetitem.type)))
+            (setf (q+:item table i 1)
+                  (q+:make-qtablewidgetitem (rest (elt headers i))
+                                            (q+:qtablewidgetitem.type)))))
     (q+:add-tab tabs-widget table "Request headers")
     tabs-widget))
 
