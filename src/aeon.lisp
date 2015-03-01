@@ -60,8 +60,8 @@
 (define-slot (aeon open-request) ((row int) (column int))
   (declare (connected headers-list (cell-clicked int int)))
   (declare (ignore column)) ; only interested in the row
-  (when (= (q+:count layout) 3)
-    (#_delete (q+:take-at layout 2)))
+  (when (= (q+:count layout) 3) ; until we have a "center" layout...
+    (finalize (q+:take-at layout 2)))
   (q+:add-widget layout (make-tabwidget aeon
                                         (request-from-string
                                          (getf
