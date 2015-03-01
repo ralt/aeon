@@ -3,7 +3,7 @@
   :author "Florian Margaine <florian@margaine.com>"
   :license "MIT License"
   :serial t
-  :depends-on (:usocket :cl-ppcre :drakma :qtools :qtcore :qtgui)
+  :depends-on (:usocket :cl-ppcre :drakma :qtools :qtcore :qtgui :bordeaux-threads)
   :components ((:module "src"
                         :components
                         ((:file "package")

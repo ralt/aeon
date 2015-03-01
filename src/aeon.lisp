@@ -60,9 +60,13 @@
 (define-slot (aeon open-request) ((row int) (column int))
   (declare (connected headers-list (cell-clicked int int)))
   (declare (ignore column)) ; only interested in the row
+  (when (= (q+:count layout) 3)
+    (#_delete (q+:take-at layout 2)))
   (q+:add-widget layout (make-tabwidget aeon
                                         (request-from-string
-                                         (getf (gethash row *requests*) :request)))))
+                                         (getf
+                                          (gethash (1+ row) *requests*)
+                                          :request)))))
 
 (defun make-tabwidget (aeon req)
   (let* ((tabs-widget (q+:make-qtabwidget aeon))
@@ -91,3 +95,8 @@
 (defun main ()
   (with-main-window (window (make-instance 'aeon))
     (setf *app* window)))
+
+(defun main-debug ()
+  (bt:make-thread #'(lambda ()
+                      (main))
+                  :name "Aeon GUI"))
