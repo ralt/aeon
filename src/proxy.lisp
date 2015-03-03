@@ -3,15 +3,18 @@
 
 (defvar *requests* (make-hash-table :test 'eq))
 (defvar *requests-counter* 0)
+(defvar *block* nil)
+(defvar *socket* nil)
 
 (defun start (address port)
   "Starts the socket server."
-  (usocket:socket-server address
-                         port
-                         #'tcp-handler
-                         nil
-                         :multi-threading t
-                         :in-new-thread t))
+  (setf *socket*
+        (usocket:socket-server address
+                               port
+                               #'tcp-handler
+                               nil
+                               :multi-threading t
+                               :in-new-thread t)))
 
 (defun tcp-handler (stream)
   "The main TCP handler."
@@ -24,8 +27,10 @@
     (setf (gethash next-id *requests*)
           (list :request str :stream stream))
     (signal! *app* (got-request int) next-id)
-    (proxy (http-request-parse-lines (cl-ppcre:split (concat '(#\Newline)) str))
-           stream)))
+    (if *block*
+        (proxy (http-request-parse-lines (cl-ppcre:split (concat '(#\Newline)) str))
+               stream)
+        (usocket:wait-for-input (list *socket*)))))
 
 (defun proxy (req stream)
   (handler-case

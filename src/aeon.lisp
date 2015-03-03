@@ -6,6 +6,8 @@
 
 (define-widget aeon (QWidget) ())
 
+(define-subwidget (aeon block-button) (q+:make-qpushbutton "Block" aeon))
+
 (define-subwidget (aeon start-button) (q+:make-qpushbutton "Start" aeon))
 
 (define-subwidget (aeon filter-text) (q+:make-qlineedit aeon)
@@ -23,7 +25,10 @@
 
 (define-subwidget (aeon layout) (q+:make-qvboxlayout aeon)
   (setf (q+:window-title aeon) "Aeon")
-  (let ((top-bar (q+:make-qhboxlayout aeon)))
+  (let ((buttons-bar (q+:make-qhboxlayout aeon))
+        (top-bar (q+:make-qhboxlayout aeon)))
+    (q+:add-widget buttons-bar block-button)
+    (q+:add-layout layout buttons-bar)
     (q+:add-widget top-bar start-button)
     (q+:add-widget top-bar filter-text)
     (q+:add-layout layout top-bar))
@@ -57,11 +62,36 @@
             (q+:make-qtablewidgetitem (http-request-request-uri req)
                                       (q+:qtablewidgetitem.type))))))
 
+(define-slot (aeon start-block) ()
+  (declare (connected block-button (pressed)))
+  (if *block*
+      (progn
+        (setf (q+:text block-button) "Block")
+        (setf *block* nil)
+        (signal! aeon (release-requests)))
+      (progn
+        (setf (q+:text block-button) "Release")
+        (setf *block* t))))
+
+(define-signal (aeon release-requests) ())
+
+(define-slot (aeon release) ()
+  (declare (connected aeon (release-requests)))
+  (loop
+     :for i from (- (hash-table-count *requests*) 1) downto 0
+     :do (progn
+           (when (= (q+:count layout) 4) ; until we have a "center" layout...
+             (finalize (q+:take-at layout 3)))
+           (finalize (q+:remove-row headers-list i))
+           (let ((val (gethash (1+ i) *requests*)))
+             (proxy (getf val :request) (getf val :stream)))))
+  (setf *requests* (make-hash-table :test 'eq)))
+
 (define-slot (aeon open-request) ((row int) (column int))
   (declare (connected headers-list (cell-clicked int int)))
   (declare (ignore column)) ; only interested in the row
-  (when (= (q+:count layout) 3) ; until we have a "center" layout...
-    (finalize (q+:take-at layout 2)))
+  (when (= (q+:count layout) 4) ; until we have a "center" layout...
+    (finalize (q+:take-at layout 3)))
   (q+:add-widget layout (make-tabwidget aeon
                                         (request-from-string
                                          (getf
